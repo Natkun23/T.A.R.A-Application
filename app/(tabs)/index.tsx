@@ -1,98 +1,249 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import {
+  Alert,
+  BackHandler,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const isOnline = useNetworkStatus();
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#dbeafe" />
+      <View style={styles.header}>
+        <View
+          style={[
+            styles.offlineBanner,
+            isOnline ? styles.onlineBanner : styles.offlineBannerColor,
+          ]}
+        >
+          <Ionicons
+            name={isOnline ? "cloud-done-outline" : "cloud-offline-outline"}
+            size={14}
+            color="#ffffff"
+          />
+          <Text style={styles.offlineText}>
+            {isOnline ? "Online" : "Offline Mode"}
+          </Text>
+        </View>
+        <Text style={styles.appCode}>T.A.R.A</Text>
+        <Text style={styles.appTitle}>
+          Time and Attendance Recording Application
+        </Text>
+        <View style={styles.divider} />
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <View style={styles.buttonGrid}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/add")}
+        >
+          <Ionicons name="person-add-outline" size={28} color="#1e3a5f" />
+          <Text style={styles.buttonText}>Add Entry</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/edit")}
+        >
+          <Ionicons name="create-outline" size={28} color="#1e3a5f" />
+          <Text style={styles.buttonText}>Edit Entry</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/data")}
+        >
+          <Ionicons name="server-outline" size={28} color="#1e3a5f" />
+          <Text style={styles.buttonText}>Database</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/track")}
+        >
+          <Ionicons name="scan-outline" size={28} color="#1e3a5f" />
+          <Text style={styles.buttonText}>Track</Text>
+        </TouchableOpacity>
+
+        {/* Archive Employee — replaces old Delete Entry */}
+        <TouchableOpacity
+          style={styles.buttonArchive}
+          onPress={() => router.push("/archive")}
+        >
+          <Ionicons name="archive-outline" size={28} color="#d97706" />
+          <Text style={styles.buttonArchiveText}>Archive{"\n"}Employee</Text>
+        </TouchableOpacity>
+
+        {/* Archived Employees — view, restore, or permanently delete */}
+        <TouchableOpacity
+          style={styles.buttonArchived}
+          onPress={() => router.push("/archived")}
+        >
+          <Ionicons name="folder-open-outline" size={28} color="#3b6ea5" />
+          <Text style={styles.buttonArchivedText}>Archived{"\n"}Employees</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.buttonExit}
+          onPress={() =>
+            Alert.alert("Exit", "Are you sure you want to exit?", [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Exit",
+                style: "destructive",
+                onPress: () => BackHandler.exitApp(),
+              },
+            ])
+          }
+        >
+          <Ionicons name="exit-outline" size={28} color="#c0392b" />
+          <Text style={styles.buttonExitText}>Exit</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.footer}>© 2026 T.A.R.A System</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#dbeafe",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  header: { alignItems: "center", marginBottom: 40 },
+  appCode: {
+    fontSize: 42,
+    fontWeight: "700",
+    color: "#1e3a5f",
+    letterSpacing: 6,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  appTitle: {
+    fontSize: 11,
+    color: "#3b6ea5",
+    textAlign: "center",
+    marginTop: 6,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  divider: {
+    width: 40,
+    height: 3,
+    backgroundColor: "#1e3a5f",
+    marginTop: 16,
+    borderRadius: 2,
+  },
+  buttonGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 12,
+    width: "100%",
+  },
+  button: {
+    backgroundColor: "#ffffff",
+    width: 110,
+    height: 110,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+  },
+  buttonArchive: {
+    backgroundColor: "#fffbeb",
+    width: 110,
+    height: 110,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#fde68a",
+  },
+  buttonArchived: {
+    backgroundColor: "#eff6ff",
+    width: 110,
+    height: 110,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+  },
+  buttonExit: {
+    backgroundColor: "#ffffff",
+    width: 110,
+    height: 110,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+  },
+  buttonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1e3a5f",
+    textAlign: "center",
+  },
+  buttonArchiveText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#d97706",
+    textAlign: "center",
+  },
+  buttonArchivedText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#3b6ea5",
+    textAlign: "center",
+  },
+  buttonExitText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#c0392b",
+    textAlign: "center",
+  },
+  footer: {
+    position: "absolute",
+    bottom: 24,
+    fontSize: 11,
+    color: "#93c5fd",
+    letterSpacing: 0.5,
+  },
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  offlineBannerColor: {
+    backgroundColor: "#f59e0b",
+  },
+  onlineBanner: {
+    backgroundColor: "#10b981",
+  },
+  offlineText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#ffffff",
   },
 });
